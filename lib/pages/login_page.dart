@@ -1,8 +1,11 @@
+import 'package:chat/helpers/mostrar_alertas.dart';
+import 'package:chat/services/auth_service.dart';
 import 'package:chat/widgets/boton_azul.dart';
 import 'package:chat/widgets/custom_inputs.dart';
 import 'package:chat/widgets/labels.dart';
 import 'package:chat/widgets/logo.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -42,8 +45,10 @@ class _Form extends StatefulWidget {
 class __FormState extends State<_Form> {
   final ctrlEmail = TextEditingController();
   final ctrlPass = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
     return Container(
       margin: const EdgeInsets.only(top: 40),
       padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -62,11 +67,24 @@ class __FormState extends State<_Form> {
             isPassword: true,
           ),
           BotonAzul(
-            onPressed: () {
-              debugPrint(ctrlEmail.text);
-              debugPrint(ctrlPass.text);
-            },
             text: 'Ingrese',
+            onPressed: authService.autenticando
+                ? null
+                : () async {
+                    // print('en el boton--> ${authService.autenticando}');
+                    debugPrint(ctrlEmail.text);
+                    debugPrint(ctrlPass.text);
+                    FocusScope.of(context).unfocus();
+                    final loginOk =
+                        await authService.login(ctrlEmail.text, ctrlPass.text);
+
+                    if (loginOk) {
+                      Navigator.pushReplacementNamed(context, 'usuarios');
+                    } else {
+                      mostrarAlerta(
+                          context, 'Login incorrecto', 'Datos incorrectos');
+                    }
+                  },
           )
         ],
       ),
